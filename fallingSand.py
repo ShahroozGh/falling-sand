@@ -5,7 +5,7 @@ class MainWindow:
 		self.root = root
 		#root = tk.Tk()
 
-		self.PIXEL_SIZE = 10
+		self.PIXEL_SIZE = 5
 		self.WINDOW_SIZE = 700
 
 		self.world = World(self.WINDOW_SIZE, self.PIXEL_SIZE) #Contains particles and does physics calcs (Pysics does not neet to worry about graphics)
@@ -43,11 +43,20 @@ class MainWindow:
 			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 				if world.particleArray[x][y].pType == 1:
 					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "brown")
+				elif world.particleArray[x][y].pType == 64:
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "grey")
 
 	def canvasClicked(self, event):
 		print("CLick: " + str(event.x) + ", " + str(event.y))
-		xTile = (event.x - (event.x % 10)) / 10
-		yTile = (event.y - (event.y % 10)) / 10
+
+		#convert window pixel coord to tile coord (Determine which tile was clicked)
+		xTile = (event.x - (event.x % self.PIXEL_SIZE)) / self.PIXEL_SIZE
+		yTile = (event.y - (event.y % self.PIXEL_SIZE)) / self.PIXEL_SIZE
+
+		self.world.addParticle(int(xTile), int(yTile))
+
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class World:
 	def __init__(self, WINDOW_SIZE, PIXEL_SIZE):
@@ -56,11 +65,55 @@ class World:
 
 		self.particleArray = [[Particle(x,y,0) for y in range(int(WINDOW_SIZE/PIXEL_SIZE))] for x in range(int(WINDOW_SIZE/PIXEL_SIZE))]
 
+		for x in range(int(WINDOW_SIZE/PIXEL_SIZE)):
+			self.particleArray[x][int(WINDOW_SIZE/PIXEL_SIZE) - 1].pType = 64
+
 	#Simulate next step
-	def updateWorld():
+	def updateWorld(self):
 		print("Update")
 		#iterate through particles
 		#move particles
+		#maybe have particles determine movement (pass in array?)
+
+		for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
+			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
+				if self.particleArray[x][y].pType != 0 and self.particleArray[x][y].pType != 64 and self.particleArray[x][y].movedFlag is False:
+					self.particleArray[x][y].update(self.particleArray, self.surroundingParticles(x,y))
+		
+		for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
+			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
+				self.particleArray[x][y].movedFlag = False
+
+	def addParticle(self, x, y):
+		print("Add")
+		self.particleArray[x][y].pType = 1
+
+	#move this to particle maybe
+	def surroundingParticles(self, x, y):
+		particleList = []
+
+		particleList.append(self.particleArray[x-1][y-1])
+		particleList.append(self.particleArray[x][y-1])
+		particleList.append(self.particleArray[x+1][y-1])
+
+		particleList.append(self.particleArray[x-1][y])
+		particleList.append(self.particleArray[x+1][y])
+
+		particleList.append(self.particleArray[x-1][y+1])
+		particleList.append(self.particleArray[x][y+1])
+		particleList.append(self.particleArray[x+1][y+1])
+
+		# [0,1,2,3,4,5,6,7]
+		#
+		# 0 1 2
+		# 3 X 4
+		# 5 6 7
+		#
+		
+		return particleList
+
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Particle:
 	#Dont use ints and strings, use smaller, maybe bitmask?
@@ -71,6 +124,39 @@ class Particle:
 		self.pType = pType
 		self.movedFlag = False
 
+	def update(self, particleArray, neighbourList):
+		#if air below
+		if neighbourList[6].pType == 0:
+			self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
+		elif neighbourList[6].pType == 64:
+			self.replaceWithAir()
+
+
+
+	def swap(self, initX, initY, finX, finY, particleArray):
+		self.movedFlag = True
+		particleArray[finX][finY].movedFlag = True
+
+
+		tempX = particleArray[finX][finY].x
+		particleArray[finX][finY].x = self.x
+		self.x = tempX
+
+		tempY = particleArray[finX][finY].y
+		particleArray[finX][finY].y = self.y
+		self.y = tempY
+
+		temp = particleArray[finX][finY]
+		particleArray[finX][finY] = particleArray[initX][initY]
+		particleArray[initX][initY] = temp
+
+	def replaceWithAir(self):
+		self.pType = 0
+
+
+
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Entry point
 def main():
 	root = tk.Tk()
