@@ -26,9 +26,9 @@ class MainWindow:
 		self.canvas = tk.Canvas(self.frame, bg="black", width = self.WINDOW_SIZE, height = self.WINDOW_SIZE)
 		self.canvas.pack()
 
-		self.elementSbox = tk.Spinbox(self.frame, from_ = 0, to = 2, repeatdelay = 10, repeatinterval = 10, command = self.newElementSelected)
+		self.elementSbox = tk.Spinbox(self.frame, from_ = 0, to = 2, repeatdelay = 100, repeatinterval = 100, command = self.newElementSelected)
 		self.elementSbox.pack()
-		
+
 		#Bind button listners to respond to clicks on canvas
 		self.canvas.bind("<Button-1>", self.canvasClicked)
 		self.canvas.bind("<B1-Motion>", self.canvasClicked)
