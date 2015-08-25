@@ -32,7 +32,7 @@ class MainWindow:
 		print("Loop")
 		self.world.updateWorld() #Maybe update and paint at the same time so iteration only has to be don once
 		self.paint(self.world)
-		self.job = self.root.after(100, self.gameLoop, root)
+		self.job = self.root.after(10, self.gameLoop, root)
 
 	def paint(self, world):
 		print("Paint")
@@ -128,8 +128,12 @@ class Particle:
 		#if air below
 		if neighbourList[6].pType == 0:
 			self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
-		elif neighbourList[6].pType == 64:
+		elif neighbourList[6].pType == 63:
 			self.replaceWithAir()
+			#if opaque
+		elif neighbourList[6].pType == 64 or neighbourList[6].pType == 1:
+			if neighbourList[5].pType == 0:
+				self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
 
 
 
@@ -153,7 +157,10 @@ class Particle:
 	def replaceWithAir(self):
 		self.pType = 0
 
+#-----------------------------------------------------------------------------------------------------
 
+class Element:
+	def __init__():
 
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
