@@ -9,6 +9,9 @@ class MainWindow:
 
 		self.frameCount = 0
 		self.frameRate = 0
+		self.physicsTime = 0
+		self.paintTime = 0
+		self.totalProcessTime = 0
 
 		self.PIXEL_SIZE = 5
 		self.WINDOW_SIZE = 700
@@ -31,10 +34,10 @@ class MainWindow:
 		self.canvas = tk.Canvas(self.frame, bg="black", width = self.WINDOW_SIZE, height = self.WINDOW_SIZE)
 		self.canvas.pack()
 
-		self.elementSbox = tk.Spinbox(self.frame, from_ = 0, to = 4, repeatdelay = 100, repeatinterval = 100, command = self.newElementSelected)
+		self.elementSbox = tk.Spinbox(self.frame, from_ = 0, to = 5, repeatdelay = 100, repeatinterval = 100, command = self.newElementSelected)
 		self.elementSbox.pack()
 
-		self.frameRateL = tk.Label(self.frame, text = "0", font = ("Helvetica", 10))
+		self.frameRateL = tk.Label(self.frame, text = "0", font = ("Helvetica", 10), anchor = "nw")
 		self.frameRateL.pack(side = tk.LEFT)
 
 		#Bind button listners to respond to clicks on canvas
@@ -43,14 +46,26 @@ class MainWindow:
 
 	def gameLoop(self, root):
 		print("Loop")
-		t0 = time.clock()
+		
+		tt0 = time.clock()#Start total timer
+
+		pht0 = time.clock()#time physics calcs
 		self.world.updateWorld() #Maybe update and paint at the same time so iteration only has to be don once
+		pht1 = time.clock()
+
+		pt0 = time.clock()#time paint calcs
 		self.paint(self.world)
-		t1 = time.clock()
+		pt1 = time.clock()
+
+		tt1 = time.clock()
 		self.frameCount += 1
 
-		self.frameRate = 1.0/(t1 - t0 + 0.01)
-		self.frameRateL.config(text = "FPS:" + str(self.frameRate))
+		self.physicsTime = pht1 - pht0
+		self.paintTime = pt1 - pt0
+		self.totalProcessTime = tt1 - tt0
+
+		self.frameRate = 1.0/(self.totalProcessTime + 0.01)
+		self.frameRateL.config(text = "FPS:" + str(self.frameRate) + "\n" + "Phys Time:" + str(self.physicsTime*1000) + "\n" + "Paint Time:" + str(self.paintTime*1000) + "\n" + "Total Time:" + str(self.totalProcessTime*1000))
 		self.job = self.root.after(10, self.gameLoop, root)
 
 	def paint(self, world):
@@ -61,7 +76,7 @@ class MainWindow:
 		for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 				if world.particleArray[x][y].pType == 1:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "orange")
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#F0C002")
 				elif world.particleArray[x][y].pType == 64:
 					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "white")
 				elif world.particleArray[x][y].pType == 2:
@@ -69,7 +84,9 @@ class MainWindow:
 				elif world.particleArray[x][y].pType == 3:
 					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "blue")
 				elif world.particleArray[x][y].pType == 4:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "brown")
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#8C3A00")
+				elif world.particleArray[x][y].pType == 5:
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#BDEEFF") #Light bluish grey
 
 
 	def canvasClicked(self, event):
@@ -91,16 +108,20 @@ class World:
 	def __init__(self, WINDOW_SIZE, PIXEL_SIZE):
 
 		#Stores classes to be instantiated (Use to get correct Particle sublclass given pType #)
-		self.Elements = [Air,Sand,Stone,Water,Oil]
+		self.Elements = [Air,Sand,Stone,Water,Oil,Ice]
 
 		self.WINDOW_SIZE = WINDOW_SIZE
 		self.PIXEL_SIZE = PIXEL_SIZE
 
 		self.particleArray = [[self.Elements[0](x,y,0) for y in range(int(WINDOW_SIZE/PIXEL_SIZE))] for x in range(int(WINDOW_SIZE/PIXEL_SIZE))]
 
-		#Fill bottom with stone so elements dont fall out of bouds (need logic to make out of bounds particles dissapear)
+		#Fill boundary with stone so elements dont fall out of bouds (need logic to make out of bounds particles dissapear)
 		for x in range(int(WINDOW_SIZE/PIXEL_SIZE)):
-			self.particleArray[x][int(WINDOW_SIZE/PIXEL_SIZE) - 1] = self.Elements[2](x,int(WINDOW_SIZE/PIXEL_SIZE) - 1,64)#64 as type so that its not printed as stone
+			self.particleArray[x][int(WINDOW_SIZE/PIXEL_SIZE) - 1] = Boundary(x,int(WINDOW_SIZE/PIXEL_SIZE) - 1,64)#64 as type so that its not printed as stone
+			self.particleArray[x][0] = Boundary(x,0,64)#64 as type so that its not printed as stone
+		for y in range(int(WINDOW_SIZE/PIXEL_SIZE)):
+			self.particleArray[int(WINDOW_SIZE/PIXEL_SIZE) - 1][y] = Boundary(int(WINDOW_SIZE/PIXEL_SIZE) - 1, y,64)#64 as type so that its not printed as stone
+			self.particleArray[0][y] = Boundary(0, y,64)#64 as type so that its not printed as stone
 
 	#Simulate next step
 	def updateWorld(self):
@@ -120,7 +141,7 @@ class World:
 
 	def addParticle(self, x, y, selectedElement):
 		print("Add")
-		self.particleArray[x][y] = self.Elements[selectedElement](x, y)
+		self.particleArray[x][y] = self.Elements[selectedElement](x, y, selectedElement)
 
 	#move this to particle maybe
 	def surroundingParticles(self, x, y):
@@ -158,6 +179,9 @@ class Particle:
 		self.pType = pType
 		self.movedFlag = False
 
+		#Pass this in instead from world
+		self.Elements = [Air,Sand,Stone,Water,Oil,Ice]
+
 		
 		#Default Properties
 		self.gravity = 1 #1 for normal gravity, -1 for floating, 0 for immovable
@@ -170,17 +194,21 @@ class Particle:
 	def update(self, particleArray, neighbourList):
 		if self.gravity != 0:
 			self.updateGravity(particleArray, neighbourList)
+
+		self.particleLogic(particleArray, neighbourList)
 		
 
 	def updateGravity(self, particleArray, neighbourList):
 		#Gravity logic
+		#If boundary below
+		if neighbourList[6].pType == 64:
+			pass
 		#if air below or less dense liquid
-		if neighbourList[6].pType == 0 or neighbourList[6].density < self.density:
+		elif neighbourList[6].pType == 0 or neighbourList[6].density < self.density:
 			self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
 		#if Out of bounds (doesnt exist now, using 64 for stone, will change 64 to oob later)
 		elif neighbourList[6].pType == 63:
 			self.replaceWithAir()
-
 		#if powder below or solid, or more dense (if more dense treat as solid)
 		elif neighbourList[6].isPowder or neighbourList[6].isSolid or neighbourList[6].density >= self.density:
 			#check if left or right is open and move if so (Checks for air in text space, should check density instead? This way it will work if a liquid is in another less dense liquid
@@ -195,7 +223,9 @@ class Particle:
 			elif neighbourList[7].density < self.density:
 					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
 
-
+	#Override to implement custom logic
+	def particleLogic(self, particleArray, neighbourList):
+		pass
 
 
 
@@ -216,6 +246,10 @@ class Particle:
 		particleArray[finX][finY] = particleArray[initX][initY]
 		particleArray[initX][initY] = temp
 
+	def addParticle(self, x, y, pType, particleArray):
+		particleArray[x][y] = self.Elements[pType](x,y,pType)
+
+	#Dont use, only chenges type not class
 	def replaceWithAir(self):
 		self.pType = 0
 
@@ -224,6 +258,7 @@ class Particle:
 class Air(Particle):
 	def __init__(self, x, y, pType = 0, movedFlag = False):
 		Particle.__init__(self, x, y, pType, movedFlag)
+		#Overridden property variables
 		self.gravity = 0 
 		self.isSolid = False 
 		self.isPowder = False 
@@ -234,44 +269,88 @@ class Air(Particle):
 	def update(self, particleArray, neighbourList):
 		pass
 
+
 class Sand(Particle):
 	def __init__(self, x, y, pType = 1, movedFlag = False):
 		Particle.__init__(self, x, y, pType, movedFlag)
+		#Overridden property variables
 		self.gravity = 1 
 		self.isSolid = False 
 		self.isPowder = True 
 		self.isLiquid = False 
-		self.density = 1.0 
+		self.density = 1.0
+
 	
 
 class Stone(Particle):
 	def __init__(self, x, y, pType = 2, movedFlag = False):
 		Particle.__init__(self, x, y, pType, movedFlag)
+		#Overridden property variables
 		self.gravity = 0
 		self.isSolid = True
 		self.isPowder = False
 		self.isLiquid = False
 
 
+
 class Water(Particle):
 	def __init__(self, x, y, pType = 3, movedFlag = False):
 		Particle.__init__(self, x, y, pType, movedFlag)
+		#Overridden property variables
 		self.gravity = 1 
 		self.isSolid = False 
 		self.isPowder = False 
 		self.isLiquid = True 
-		self.density = 0.5 
+		self.density = 0.5
+
 
 	
 
 class Oil(Particle):
 	def __init__(self, x, y, pType = 4, movedFlag = False):
 		Particle.__init__(self, x, y, pType, movedFlag)
+		#Overridden property variables
 		self.gravity = 1 
 		self.isSolid = False 
 		self.isPowder = False 
 		self.isLiquid = True 
-		self.density = 0.1 
+		self.density = 0.1
+
+class Ice(Particle):
+	def __init__(self, x, y, pType = 5, movedFlag = False):
+		Particle.__init__(self, x, y, pType, movedFlag)
+		#Overridden property variables
+		self.gravity = 0
+		self.isSolid = True 
+		self.isPowder = False 
+		self.isLiquid = False 
+		self.density = 1.0
+
+	def particleLogic(self, particleArray, neighbourList):
+		
+		for particle in neighbourList:
+			if particle.pType == 3:
+				if random.randint(0,100) == 0:
+					self.addParticle(particle.x, particle.y, 5, particleArray)
+
+
+
+
+class Boundary(Particle):
+	def __init__(self, x, y, pType = 64, movedFlag = False):
+		Particle.__init__(self, x, y, pType, movedFlag)
+		#Overridden property variables
+		self.gravity = 0 
+		self.isSolid = False 
+		self.isPowder = False 
+		self.isLiquid = False 
+		self.density = 1.0
+
+	#No need to use update function for air so just ovveride
+	def update(self, particleArray, neighbourList):
+		pass
+
+
 
 	
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
