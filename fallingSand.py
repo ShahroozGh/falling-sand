@@ -1,9 +1,14 @@
 import tkinter as tk
+import random
+import time
 
 class MainWindow:
 	def __init__(self, root):
 		self.root = root
 		#root = tk.Tk()
+
+		self.frameCount = 0
+		self.frameRate = 0
 
 		self.PIXEL_SIZE = 5
 		self.WINDOW_SIZE = 700
@@ -26,8 +31,11 @@ class MainWindow:
 		self.canvas = tk.Canvas(self.frame, bg="black", width = self.WINDOW_SIZE, height = self.WINDOW_SIZE)
 		self.canvas.pack()
 
-		self.elementSbox = tk.Spinbox(self.frame, from_ = 0, to = 2, repeatdelay = 100, repeatinterval = 100, command = self.newElementSelected)
+		self.elementSbox = tk.Spinbox(self.frame, from_ = 0, to = 4, repeatdelay = 100, repeatinterval = 100, command = self.newElementSelected)
 		self.elementSbox.pack()
+
+		self.frameRateL = tk.Label(self.frame, text = "0", font = ("Helvetica", 10))
+		self.frameRateL.pack(side = tk.LEFT)
 
 		#Bind button listners to respond to clicks on canvas
 		self.canvas.bind("<Button-1>", self.canvasClicked)
@@ -35,8 +43,14 @@ class MainWindow:
 
 	def gameLoop(self, root):
 		print("Loop")
+		t0 = time.clock()
 		self.world.updateWorld() #Maybe update and paint at the same time so iteration only has to be don once
 		self.paint(self.world)
+		t1 = time.clock()
+		self.frameCount += 1
+
+		self.frameRate = 1.0/(t1 - t0 + 0.01)
+		self.frameRateL.config(text = "FPS:" + str(self.frameRate))
 		self.job = self.root.after(10, self.gameLoop, root)
 
 	def paint(self, world):
@@ -47,11 +61,17 @@ class MainWindow:
 		for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 				if world.particleArray[x][y].pType == 1:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "brown")
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "orange")
 				elif world.particleArray[x][y].pType == 64:
 					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "white")
 				elif world.particleArray[x][y].pType == 2:
 					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "grey")
+				elif world.particleArray[x][y].pType == 3:
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "blue")
+				elif world.particleArray[x][y].pType == 4:
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "brown")
+
+
 	def canvasClicked(self, event):
 		print("CLick: " + str(event.x) + ", " + str(event.y))
 
@@ -71,7 +91,7 @@ class World:
 	def __init__(self, WINDOW_SIZE, PIXEL_SIZE):
 
 		#Stores classes to be instantiated (Use to get correct Particle sublclass given pType #)
-		self.Elements = [Air,Sand,Stone]
+		self.Elements = [Air,Sand,Stone,Water,Oil]
 
 		self.WINDOW_SIZE = WINDOW_SIZE
 		self.PIXEL_SIZE = PIXEL_SIZE
@@ -143,6 +163,7 @@ class Particle:
 		self.isSolid = False #For immovable objects such as stone
 		self.isPowder = True #Powders have infinite density, sink below all liquids, stack with other powders
 		self.isLiquid = False #Liquids like powders but have varying densities(can float), stacking depends on density
+		self.density = 1.0 #Density of liquid, with 1 being a powder, always sinks
 
 
 	def update(self, particleArray, neighbourList):
@@ -153,8 +174,19 @@ class Particle:
 			self.replaceWithAir()
 			#if opaque
 		elif neighbourList[6].pType == 64 or neighbourList[6].pType == 1:
+			
+			if neighbourList[5].pType == 0 and neighbourList[5].pType == 0:
+				if random.randint(0,1) == 1:
+					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+				else:
+					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+
 			if neighbourList[5].pType == 0:
-				self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+			if neighbourList[7].pType == 0:
+					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+
+
 
 
 
@@ -179,12 +211,16 @@ class Particle:
 		self.pType = 0
 
 #-----------------------------------------------------------------------------------------------------
+#maybe have a liquid and powder class (extended from particle) which respective elements extend,
 class Air(Particle):
 	def __init__(self, x, y, pType = 0, movedFlag = False):
 		Particle.__init__(self, x, y, pType, movedFlag)
 		self.gravity = 0
 		self.isPowder = False
 		self.isLiquid = False
+
+	def update(self, particleArray, neighbourList):
+		pass
 
 class Sand(Particle):
 	def __init__(self, x, y, pType = 1, movedFlag = False):
@@ -193,7 +229,8 @@ class Sand(Particle):
 		self.isPowder = True
 		self.isLiquid = False
 
-	def update(self, particleArray, neighbourList):
+	def update(self, particleArray, neighbourList): #Maybe move gravity logic up to Particle in own method, will be used alot
+		#Gravity logic
 		#if air below
 		if neighbourList[6].pType == 0 or neighbourList[6].isLiquid:
 			self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
@@ -203,8 +240,16 @@ class Sand(Particle):
 		#if powder below
 		elif neighbourList[6].isPowder or neighbourList[6].isSolid:
 			#check if left or right is open and move if so
-			if neighbourList[5].pType == 0:
-				self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+			if neighbourList[5].pType == 0 and neighbourList[7].pType == 0:
+				if random.randint(0,1) == 1:
+					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+				else:
+					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+
+			elif neighbourList[5].pType == 0:
+					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+			elif neighbourList[7].pType == 0:
+					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
 
 class Stone(Particle):
 	def __init__(self, x, y, pType = 2, movedFlag = False):
@@ -216,6 +261,86 @@ class Stone(Particle):
 
 	def update(self, particleArray, neighbourList):
 		pass
+
+class Water(Particle):
+	def __init__(self, x, y, pType = 3, movedFlag = False):
+		Particle.__init__(self, x, y, pType, movedFlag)
+		self.gravity = 1 
+		self.isSolid = False 
+		self.isPowder = False 
+		self.isLiquid = True 
+		self.density = 0.5 
+
+		def update(self, particleArray, neighbourList):
+			#Gravity logic
+			#if air below or less dense liquid
+			if neighbourList[6].pType == 0 or neighbourList[6].density < self.density:
+				self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
+			#if Out of bounds (doesnt exist now, using 64 for stone, will change 64 to oob later)
+			elif neighbourList[6].pType == 63:
+				self.replaceWithAir()
+			#if liquid below, check densities
+			elif neighbourList[6].isLiquid:
+				#Below is more dense, treat like solid
+				if neighbourList[6].density >= self.density:
+					pass
+				#if below is less dense, sink
+				else:
+					pass
+
+			#if powder below or solid, or water(self)
+			elif neighbourList[6].isPowder or neighbourList[6].isSolid or neighbourList[6].pType == 3:
+				#check if left or right is open and move if so
+				if neighbourList[5].pType == 0 and neighbourList[7].pType == 0:
+					if random.randint(0,1) == 1:
+						self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+					else:
+						self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+
+				elif neighbourList[5].pType == 0:
+						self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+				elif neighbourList[7].pType == 0:
+						self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+
+class Oil(Particle):
+	def __init__(self, x, y, pType = 4, movedFlag = False):
+		Particle.__init__(self, x, y, pType, movedFlag)
+		self.gravity = 1 
+		self.isSolid = False 
+		self.isPowder = False 
+		self.isLiquid = True 
+		self.density = 0.3 
+
+		def update(self, particleArray, neighbourList):
+			#Gravity logic
+			#if air below or less dense liquid
+			if neighbourList[6].pType == 0 or neighbourList[6].density < self.density:
+				self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
+			#if Out of bounds (doesnt exist now, using 64 for stone, will change 64 to oob later)
+			elif neighbourList[6].pType == 63:
+				self.replaceWithAir()
+			#if liquid below, check densities
+			elif neighbourList[6].isLiquid:
+				#Below is more dense, treat like solid
+				if neighbourList[6].density >= self.density:
+					pass
+				#if below is less dense, sink
+				else:
+					pass
+
+			#if powder below or solid, or water(self)
+			elif neighbourList[6].isPowder or neighbourList[6].isSolid or neighbourList[6].pType == 4:
+				#check if left or right is open and move if so
+				if neighbourList[5].pType == 0 and neighbourList[7].pType == 0:
+					if random.randint(0,1) == 1:
+						self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+					else:
+						self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+
+				elif neighbourList[5].pType == 0:
+						self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
+				elif neighbourList[7].pType == 0:
+						self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Entry point
 def main():
