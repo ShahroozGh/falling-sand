@@ -168,23 +168,31 @@ class Particle:
 
 
 	def update(self, particleArray, neighbourList):
-		#if air below
-		if neighbourList[6].pType == 0:
+		if self.gravity != 0:
+			self.updateGravity(particleArray, neighbourList)
+		
+
+	def updateGravity(self, particleArray, neighbourList):
+		#Gravity logic
+		#if air below or less dense liquid
+		if neighbourList[6].pType == 0 or neighbourList[6].density < self.density:
 			self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
+		#if Out of bounds (doesnt exist now, using 64 for stone, will change 64 to oob later)
 		elif neighbourList[6].pType == 63:
 			self.replaceWithAir()
-			#if opaque
-		elif neighbourList[6].pType == 64 or neighbourList[6].pType == 1:
-			
-			if neighbourList[5].pType == 0 and neighbourList[5].pType == 0:
+
+		#if powder below or solid, or more dense (if more dense treat as solid)
+		elif neighbourList[6].isPowder or neighbourList[6].isSolid or neighbourList[6].density >= self.density:
+			#check if left or right is open and move if so (Checks for air in text space, should check density instead? This way it will work if a liquid is in another less dense liquid
+			if neighbourList[5].density < self.density and neighbourList[7].density < self.density:
 				if random.randint(0,1) == 1:
 					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
 				else:
 					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
 
-			if neighbourList[5].pType == 0:
+			elif neighbourList[5].density < self.density:
 					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
-			if neighbourList[7].pType == 0:
+			elif neighbourList[7].density < self.density:
 					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
 
 
@@ -222,39 +230,19 @@ class Air(Particle):
 		self.isLiquid = False 
 		self.density = 0.0 
 
+	#No need to use update function for air so just ovveride
 	def update(self, particleArray, neighbourList):
 		pass
 
 class Sand(Particle):
 	def __init__(self, x, y, pType = 1, movedFlag = False):
 		Particle.__init__(self, x, y, pType, movedFlag)
-		self.gravity = 0 
+		self.gravity = 1 
 		self.isSolid = False 
 		self.isPowder = True 
 		self.isLiquid = False 
 		self.density = 1.0 
-
-	def update(self, particleArray, neighbourList): #Maybe move gravity logic up to Particle in own method, will be used alot
-		#Gravity logic
-		#if air below
-		if neighbourList[6].pType == 0 or neighbourList[6].isLiquid:
-			self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
-		#if Out of bounds (doesnt exist now, using 64 for stone, will change 64 to oob later)
-		elif neighbourList[6].pType == 63:
-			self.replaceWithAir()
-		#if powder below
-		elif neighbourList[6].isPowder or neighbourList[6].isSolid:
-			#check if left or right is open and move if so
-			if neighbourList[5].pType == 0 and neighbourList[7].pType == 0:
-				if random.randint(0,1) == 1:
-					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
-				else:
-					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
-
-			elif neighbourList[5].pType == 0:
-					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
-			elif neighbourList[7].pType == 0:
-					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+	
 
 class Stone(Particle):
 	def __init__(self, x, y, pType = 2, movedFlag = False):
@@ -264,8 +252,6 @@ class Stone(Particle):
 		self.isPowder = False
 		self.isLiquid = False
 
-	def update(self, particleArray, neighbourList):
-		pass
 
 class Water(Particle):
 	def __init__(self, x, y, pType = 3, movedFlag = False):
@@ -276,28 +262,7 @@ class Water(Particle):
 		self.isLiquid = True 
 		self.density = 0.5 
 
-	def update(self, particleArray, neighbourList):
-		#Gravity logic
-		#if air below or less dense liquid
-		if neighbourList[6].pType == 0 or neighbourList[6].density < self.density:
-			self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
-		#if Out of bounds (doesnt exist now, using 64 for stone, will change 64 to oob later)
-		elif neighbourList[6].pType == 63:
-			self.replaceWithAir()
-
-		#if powder below or solid, or more dense (if more dense treat as solid)
-		elif neighbourList[6].isPowder or neighbourList[6].isSolid or neighbourList[6].density >= self.density:
-			#check if left or right is open and move if so (Checks for air in text space, should check density instead? This way it will work if a liquid is in another less dense liquid
-			if neighbourList[5].density < self.density and neighbourList[7].density < self.density:
-				if random.randint(0,1) == 1:
-					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
-				else:
-					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
-
-			elif neighbourList[5].density < self.density:
-					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
-			elif neighbourList[7].density < self.density:
-					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+	
 
 class Oil(Particle):
 	def __init__(self, x, y, pType = 4, movedFlag = False):
@@ -308,28 +273,7 @@ class Oil(Particle):
 		self.isLiquid = True 
 		self.density = 0.1 
 
-	def update(self, particleArray, neighbourList):
-		#Gravity logic
-		#if air below or less dense liquid
-		if neighbourList[6].pType == 0 or neighbourList[6].density < self.density:
-			self.swap(self.x, self.y, neighbourList[6].x, neighbourList[6].y, particleArray)
-		#if Out of bounds (doesnt exist now, using 64 for stone, will change 64 to oob later)
-		elif neighbourList[6].pType == 63:
-			self.replaceWithAir()
-
-		#if powder below or solid, or more dense (if more dense treat as solid)
-		elif neighbourList[6].isPowder or neighbourList[6].isSolid or neighbourList[6].density >= self.density:
-			#check if left or right is open and move if so (Checks for air in text space, should check density instead? This way it will work if a liquid is in another less dense liquid
-			if neighbourList[5].density < self.density and neighbourList[7].density < self.density:
-				if random.randint(0,1) == 1:
-					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
-				else:
-					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
-
-			elif neighbourList[5].pType == 0:
-					self.swap(self.x, self.y, neighbourList[5].x, neighbourList[5].y, particleArray)
-			elif neighbourList[7].pType == 0:
-					self.swap(self.x, self.y, neighbourList[7].x, neighbourList[7].y, particleArray)
+	
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Entry point
 def main():
