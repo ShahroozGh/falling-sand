@@ -34,7 +34,7 @@ class MainWindow:
 		self.canvas = tk.Canvas(self.frame, bg="black", width = self.WINDOW_SIZE, height = self.WINDOW_SIZE)
 		self.canvas.pack()
 
-		self.elementSbox = tk.Spinbox(self.frame, from_ = 0, to = 5, repeatdelay = 100, repeatinterval = 100, command = self.newElementSelected)
+		self.elementSbox = tk.Spinbox(self.frame, from_ = 0, to = 6, repeatdelay = 100, repeatinterval = 100, command = self.newElementSelected)
 		self.elementSbox.pack()
 
 		self.frameRateL = tk.Label(self.frame, text = "0", font = ("Helvetica", 10), anchor = "nw")
@@ -86,8 +86,9 @@ class MainWindow:
 				elif world.particleArray[x][y].pType == 4:
 					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#8C3A00")
 				elif world.particleArray[x][y].pType == 5:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#BDEEFF") #Light bluish grey
-
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#BDEEFF") #Light bluish grey 
+				elif world.particleArray[x][y].pType == 6:
+					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#2BA6CF")
 
 	def canvasClicked(self, event):
 		print("CLick: " + str(event.x) + ", " + str(event.y))
@@ -108,7 +109,7 @@ class World:
 	def __init__(self, WINDOW_SIZE, PIXEL_SIZE):
 
 		#Stores classes to be instantiated (Use to get correct Particle sublclass given pType #)
-		self.Elements = [Air,Sand,Stone,Water,Oil,Ice]
+		self.Elements = [Air,Sand,Stone,Water,Oil,Ice,Spout]
 
 		self.WINDOW_SIZE = WINDOW_SIZE
 		self.PIXEL_SIZE = PIXEL_SIZE
@@ -180,7 +181,7 @@ class Particle:
 		self.movedFlag = False
 
 		#Pass this in instead from world
-		self.Elements = [Air,Sand,Stone,Water,Oil,Ice]
+		self.Elements = [Air,Sand,Stone,Water,Oil,Ice,Spout]
 
 		
 		#Default Properties
@@ -332,6 +333,23 @@ class Ice(Particle):
 			if particle.pType == 3:
 				if random.randint(0,100) == 0:
 					self.addParticle(particle.x, particle.y, 5, particleArray)
+
+class Spout(Particle):
+	def __init__(self, x, y, pType = 6, movedFlag = False):
+		Particle.__init__(self, x, y, pType, movedFlag)
+		#Overridden property variables
+		self.gravity = 0
+		self.isSolid = True 
+		self.isPowder = False 
+		self.isLiquid = False 
+		self.density = 1.0
+
+	def particleLogic(self, particleArray, neighbourList):
+
+		if neighbourList[6].pType == 0:
+			if random.randint(0,10) == 0:
+				self.addParticle(self.x, self.y + 1, 3, particleArray)
+			
 
 
 
