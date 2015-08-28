@@ -304,6 +304,12 @@ class Water(Particle):
 		self.isLiquid = True 
 		self.density = 0.5
 
+	def particleLogic(self, particleArray, neighbourList):
+		if neighbourList[3].pType == 3 and neighbourList[4].pType == 0:
+			self.swap(self.x, self.y, neighbourList[4].x, neighbourList[4].y, particleArray)
+		elif neighbourList[4].pType == 3 and neighbourList[3].pType == 0:
+			self.swap(self.x, self.y, neighbourList[3].x, neighbourList[3].y, particleArray)
+
 
 	
 
