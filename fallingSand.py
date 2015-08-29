@@ -74,6 +74,7 @@ class MainWindow:
 	def initCanvasTiles(self, WINDOW_SIZE, PIXEL_SIZE):
 		self.canvasTiles = [[self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "black") for y in range(int(WINDOW_SIZE/PIXEL_SIZE))] for x in range(int(WINDOW_SIZE/PIXEL_SIZE))]
 
+
 	def paint(self, world):
 		print("Paint")
 		# self.canvas.delete(tk.ALL)
@@ -96,6 +97,12 @@ class MainWindow:
 		# 		elif world.particleArray[x][y].pType == 6:
 		# 			self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#2BA6CF")
 
+		#maybe add list of particles changed and only update those (another flag?)
+		#Do this rather than iterating through 2d array (1d set instead)
+		#for pixel in set(changed set):
+		#	self.canvas blah blah
+
+		
 		for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 				if world.particleArray[x][y].pType == 1:
