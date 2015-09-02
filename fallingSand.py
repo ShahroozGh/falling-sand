@@ -77,25 +77,25 @@ class MainWindow:
 
 	def paint(self, world):
 		print("Paint")
-		self.canvas.delete(tk.ALL)
+		#self.canvas.delete(tk.ALL)
 		#get array from world and iterate
 			#if blah paint blah at xy
-		for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
-			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
-				if world.particleArray[x][y].pType == 1:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#F0C002")
-				elif world.particleArray[x][y].pType == 64:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "white")
-				elif world.particleArray[x][y].pType == 2:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "grey")
-				elif world.particleArray[x][y].pType == 3:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "blue")
-				elif world.particleArray[x][y].pType == 4:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#8C3A00")
-				elif world.particleArray[x][y].pType == 5:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#BDEEFF") #Light bluish grey 
-				elif world.particleArray[x][y].pType == 6:
-					self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#2BA6CF")
+		# for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
+		# 	for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
+		# 		if world.particleArray[x][y].pType == 1:
+		# 			self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#F0C002")
+		# 		elif world.particleArray[x][y].pType == 64:
+		# 			self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "white")
+		# 		elif world.particleArray[x][y].pType == 2:
+		# 			self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "grey")
+		# 		elif world.particleArray[x][y].pType == 3:
+		# 			self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "blue")
+		# 		elif world.particleArray[x][y].pType == 4:
+		# 			self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#8C3A00")
+		# 		elif world.particleArray[x][y].pType == 5:
+		# 			self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#BDEEFF") #Light bluish grey 
+		# 		elif world.particleArray[x][y].pType == 6:
+		# 			self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#2BA6CF")
 
 		#maybe add list of particles changed and only update those (another flag?)
 		#Do this rather than iterating through 2d array (1d set instead)
@@ -122,6 +122,48 @@ class MainWindow:
 		# 		elif world.particleArray[x][y].pType == 0:
 		# 			self.canvas.itemconfig(self.canvasTiles[x][y], fill = "black")
 
+		# for element in world.particlesToRedraw:
+		# 	x = element.x
+		# 	y = element.y
+		# 	if element.pType == 1:
+		# 		self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#F0C002")
+		# 	elif element.pType == 64:
+		# 		self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "white")
+		# 	elif element.pType == 2:
+		# 		self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "grey")
+		# 	elif element.pType == 3:
+		# 		self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "blue")
+		# 	elif element.pType == 4:
+		# 		self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#8C3A00")
+		# 	elif element.pType == 5:
+		# 		self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#BDEEFF") #Light bluish grey 
+		# 	elif element.pType == 6:
+		# 		self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "#2BA6CF")
+		# 	elif element.pType == 0:
+		# 		self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "black") 
+
+		for element in world.particlesToRedraw:
+			x = element.x
+			y = element.y
+			if element.pType == 1:
+				self.canvas.itemconfig(self.canvasTiles[x][y], fill = "#F0C002")
+			elif element.pType == 64:
+				self.canvas.itemconfig(self.canvasTiles[x][y], fill = "white")
+			elif element.pType == 2:
+				self.canvas.itemconfig(self.canvasTiles[x][y], fill = "grey")
+			elif element.pType == 3:
+				self.canvas.itemconfig(self.canvasTiles[x][y], fill = "blue")
+			elif element.pType == 4:
+				self.canvas.itemconfig(self.canvasTiles[x][y], fill = "#8C3A00")
+			elif element.pType == 5:
+				self.canvas.itemconfig(self.canvasTiles[x][y], fill = "#BDEEFF") #Light bluish grey 
+			elif element.pType == 6:
+				self.canvas.itemconfig(self.canvasTiles[x][y], fill = "#2BA6CF")
+			elif element.pType == 0:
+				self.canvas.itemconfig(self.canvasTiles[x][y], fill = "black")
+
+		world.particlesToRedraw.clear()
+
 
 	def canvasClicked(self, event):
 		print("CLick: " + str(event.x) + ", " + str(event.y))
@@ -147,15 +189,18 @@ class World:
 		self.WINDOW_SIZE = WINDOW_SIZE
 		self.PIXEL_SIZE = PIXEL_SIZE
 
-		self.particleArray = [[self.Elements[0](x,y,0) for y in range(int(WINDOW_SIZE/PIXEL_SIZE))] for x in range(int(WINDOW_SIZE/PIXEL_SIZE))]
+		self.particleArray = [[self.Elements[0](self, x,y,0) for y in range(int(WINDOW_SIZE/PIXEL_SIZE))] for x in range(int(WINDOW_SIZE/PIXEL_SIZE))]
+
+		#List of particles that haev been updated and need to be redrawn
+		self.particlesToRedraw = []
 
 		#Fill boundary with stone so elements dont fall out of bouds (need logic to make out of bounds particles dissapear)
 		for x in range(int(WINDOW_SIZE/PIXEL_SIZE)):
-			self.particleArray[x][int(WINDOW_SIZE/PIXEL_SIZE) - 1] = Boundary(x,int(WINDOW_SIZE/PIXEL_SIZE) - 1,64)#64 as type so that its not printed as stone
-			self.particleArray[x][0] = Boundary(x,0,64)#64 as type so that its not printed as stone
+			self.particleArray[x][int(WINDOW_SIZE/PIXEL_SIZE) - 1] = Boundary(self,x,int(WINDOW_SIZE/PIXEL_SIZE) - 1,64)#64 as type so that its not printed as stone
+			self.particleArray[x][0] = Boundary(self,x,0,64)#64 as type so that its not printed as stone
 		for y in range(int(WINDOW_SIZE/PIXEL_SIZE)):
-			self.particleArray[int(WINDOW_SIZE/PIXEL_SIZE) - 1][y] = Boundary(int(WINDOW_SIZE/PIXEL_SIZE) - 1, y,64)#64 as type so that its not printed as stone
-			self.particleArray[0][y] = Boundary(0, y,64)#64 as type so that its not printed as stone
+			self.particleArray[int(WINDOW_SIZE/PIXEL_SIZE) - 1][y] = Boundary(self,int(WINDOW_SIZE/PIXEL_SIZE) - 1, y,64)#64 as type so that its not printed as stone
+			self.particleArray[0][y] = Boundary(self,0, y,64)#64 as type so that its not printed as stone
 
 	#Simulate next step
 	def updateWorld(self):
@@ -175,7 +220,7 @@ class World:
 
 	def addParticle(self, x, y, selectedElement):
 		print("Add")
-		self.particleArray[x][y] = self.Elements[selectedElement](x, y, selectedElement)
+		self.particleArray[x][y] = self.Elements[selectedElement](self, x, y, selectedElement)
 
 	#move this to particle maybe
 	def surroundingParticles(self, x, y):
@@ -207,11 +252,14 @@ class World:
 class Particle:
 	#Dont use ints and strings, use smaller, maybe bitmask?
 	#may not need x, y (determined by position in 2d array)
-	def __init__(self, x = 0, y = 0, pType = 0, movedFlag = False):
+	def __init__(self, world, x = 0, y = 0, pType = 0, movedFlag = False):
 		self.x = x
 		self.y = y
 		self.pType = pType
 		self.movedFlag = False
+
+		#Pass in reference to world, (can acvcess particle array from here instead)
+		self.world = world
 
 
 		#Pass this in instead from world
@@ -281,12 +329,20 @@ class Particle:
 		particleArray[finX][finY] = particleArray[initX][initY]
 		particleArray[initX][initY] = temp
 
+		#UPDATE LIST APPEND BOTH
+		self.world.particlesToRedraw.append(particleArray[initX][initY])
+		self.world.particlesToRedraw.append(particleArray[finX][finY])
+
 	def addParticle(self, x, y, pType, particleArray):
-		particleArray[x][y] = self.Elements[pType](x,y,pType)
+		particleArray[x][y] = self.Elements[pType](self.world,x,y,pType)
+
+		#UPDATE LIST APPEND
+		self.world.particlesToRedraw.append(particleArray[x][y])
 
 	#Dont use, only chenges type not class
 	def replaceWithAir(self):
 		self.pType = 0
+		#UPDATE LIST APPEND
 
 #-----------------------------------------------------------------------------------------------------
 #maybe have a liquid and powder class (extended from particle) which respective elements extend,
