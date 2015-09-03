@@ -69,7 +69,11 @@ class MainWindow:
 
 		self.frameRate = 1.0/(self.totalProcessTime + 0.01)
 		self.frameRateL.config(text = "FPS:" + str(self.frameRate) + "\n" + "Phys Time:" + str(self.physicsTime*1000) + "\n" + "Paint Time:" + str(self.paintTime*1000) + "\n" + "Total Time:" + str(self.totalProcessTime*1000))
-		self.job = self.root.after(10, self.gameLoop, root)
+		
+		if (self.totalProcessTime*1000 >= 10):
+			self.job = self.root.after(1, self.gameLoop, root)
+		else:
+			self.job = self.root.after(int(10 - self.totalProcessTime*1000), self.gameLoop, root)
 
 	def initCanvasTiles(self, WINDOW_SIZE, PIXEL_SIZE):
 		self.canvasTiles = [[self.canvas.create_rectangle(x * self.PIXEL_SIZE, y * self.PIXEL_SIZE, x * self.PIXEL_SIZE + self.PIXEL_SIZE, y * self.PIXEL_SIZE + self.PIXEL_SIZE, fill = "black") for y in range(int(WINDOW_SIZE/PIXEL_SIZE))] for x in range(int(WINDOW_SIZE/PIXEL_SIZE))]
@@ -222,6 +226,8 @@ class World:
 		print("Add")
 		self.particleArray[x][y] = self.Elements[selectedElement](self, x, y, selectedElement)
 
+		self.particlesToRedraw.append(self.particleArray[x][y])
+
 	#move this to particle maybe
 	def surroundingParticles(self, x, y):
 		particleList = []
@@ -275,6 +281,8 @@ class Particle:
 
 
 	def update(self, particleArray, neighbourList):
+		#if surrounded dont update?
+
 		if self.gravity != 0:
 			self.updateGravity(particleArray, neighbourList)
 
