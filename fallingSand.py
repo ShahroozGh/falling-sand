@@ -216,7 +216,8 @@ class World:
 		for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)): #Just call update, no need for check, or 
 				if self.particleArray[x][y].pType != 0 and self.particleArray[x][y].pType != 64 and self.particleArray[x][y].movedFlag is False:
-					self.particleArray[x][y].update(self.particleArray, self.surroundingParticles(x,y))
+					if self.isSurrounded(x,y) is False: #Do not update if particle is surrounded by its own type (Maybe move this to seperate function to do the check and add particles to be updated to single list])
+						self.particleArray[x][y].update(self.particleArray, self.surroundingParticles(x,y))
 		
 		for x in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
 			for y in range(int(self.WINDOW_SIZE/self.PIXEL_SIZE)):
@@ -251,6 +252,17 @@ class World:
 		#
 		
 		return particleList
+
+	#Checks if particle is surrounded by its own type
+	def isSurrounded(self, x, y):
+		neighbourParticles = self.surroundingParticles(x,y)
+		elementType = self.particleArray[x][y].pType
+
+		for element in neighbourParticles:
+			if element.pType != elementType:
+				return False
+
+		return True
 
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
